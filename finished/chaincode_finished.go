@@ -27,6 +27,16 @@ import (
 type SimpleChaincode struct {
 }
 
+type Account struct {
+	ID          string  `json:"id"`
+	Balance float64 `json:"balance"`
+}
+type Account struct {
+        ID          string  `json:"id"`
+        Balance float64 `json:"balance"`
+}
+
+
 func main() {
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
@@ -39,8 +49,8 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
-
-	err := stub.PutState("hello_world", []byte(args[0]))
+err :=createAccounts(stub);
+//	err := stub.PutState("hello_world", []byte(args[0]))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +58,47 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	return nil, nil
 }
 
-// Invoke isur entry point to invoke a chaincode function
+func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
+
+	var loanAccount = Account{ID: "CustAcc_123456789", Balance: 10000000.0}
+
+	var contractorAccount = Account{ID: "ContractAcc_987654321", Balance:0.0}
+
+	loanAccountBytes, err := json.Marshal(&loanAccount)
+    	if err != nil {
+        	fmt.Println("error creating account" + loanAccount.ID)
+
+        	return nil, errors.New("Error creating account " + loanAccount.ID)
+    	}
+	contractorAccountBytes, err := json.Marshal(&contractorAccount)
+   	 if err != nil {
+        	fmt.Println("error creating account" +contractorAccount.ID)
+        	return nil, errors.New("Error creating account " +contractorAccount.ID)
+    	}	
+
+	err = stub.PutState(loanAccount.ID, loanAccountBytes)
+                
+                if err == nil {
+                    fmt.Println("created account" + loanAccount.ID)
+                    return nil, nil
+                } else {
+                    fmt.Println("failed to create initialize account for " + loanAccount.ID)
+                    return nil, errors.New("failed to initialize an account for " + loanAccount.ID + " => " + err.Error())
+                }	
+
+err = stub.PutState(contractorAccount.ID, contractorAccountBytes)
+ 
+                if err == nil {
+                    fmt.Println("created account" + contractorAccount.ID)
+                    return nil, nil
+                } else {
+                    fmt.Println("failed to create initialize account for " + contractorAccount.ID)
+                    return nil, errors.New("failed to initialize an account for " + contractorAccount.ID + " => " + err.Error())
+                }
+}
+
+
+Invoke isur entry point to invoke a chaincode function
 func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("invoke is running " + function)
 
@@ -63,9 +113,44 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	return nil, errors.New("Received unknown function invocation")
 }
 
+func GetAccount(stub *shim.ChaincodeStub , accountid string) (Account,error){
+	var account Account
+
+	accountBytes, err := stub.GetState(accountid)
+	if err != nil {
+		fmt.Println("Error retrieving account " + accountid)
+		return account, errors.New("Error retrieving account " + accountid)
+	}
+		
+	err = json.Unmarshal(accountBytes, &account)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + accountBytes)
+		return account, errors.New("Error unmarshalling account " + accountid)
+	}
+		
+	return account, nil
+}
+
+
 // Query is our entry point for queries
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("query is running " + function)
+
+if args[0] == "GetAccountDetails" {
+		fmt.Println("Getting account details")
+		account, err := GetAccount(stub, args[1])
+		if err != nil {
+			fmt.Println("Error Getting particular account")
+			return nil, err
+		} else {
+			accountBytes, err1 := json.Marshal(&account)
+			if err1 != nil {
+				fmt.Println("Error marshalling account")
+				return nil, err1
+			}	
+			return accountBytes, nil		 
+		}
+	}
 
 	// Handle different functions
 	if function == "read" { //read a variable
