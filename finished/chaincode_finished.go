@@ -94,7 +94,7 @@ err = stub.PutState(contractorAccount.ID, contractorAccountBytes)
 }
 
 
-Invoke isur entry point to invoke a chaincode function
+//Invoke isur entry point to invoke a chaincode function
 func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("invoke is running " + function)
 
