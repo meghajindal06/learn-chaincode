@@ -46,16 +46,13 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
-err :=createAccounts(stub);
+createAccounts(stub);
 //	err := stub.PutState("hello_world", []byte(args[0]))
-	if err != nil {
-		return nil, err
-	}
 
 	return nil, nil
 }
 
-func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
+func createAccounts(stub *shim.ChaincodeStub)  {
 
 	var loanAccount = Account{ID: "CustAcc_123456789", Balance: 10000000.0}
 
@@ -64,17 +61,14 @@ func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
     	if err != nil {
         	fmt.Println("error creating account" + loanAccount.ID)
 
-        	return nil, errors.New("Error creating account " + loanAccount.ID)
     	}
 
 	err = stub.PutState(loanAccount.ID, loanAccountBytes)
                 
                 if err == nil {
                     fmt.Println("created account" + loanAccount.ID)
-                    return nil, nil
                 } else {
                     fmt.Println("failed to create initialize account for " + loanAccount.ID)
-                    return nil, errors.New("failed to initialize an account for " + loanAccount.ID + " => " + err.Error())
                 }	
 
  
