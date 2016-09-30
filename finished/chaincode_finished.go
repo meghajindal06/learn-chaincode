@@ -17,7 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"errors"
+"encoding/json"	
+"errors"
 	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -58,7 +59,6 @@ func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
 
 	var loanAccount = Account{ID: "CustAcc_123456789", Balance: 10000000.0}
 
-	var contractorAccount = Account{ID: "ContractAcc_987654321", Balance:0.0}
 
 	loanAccountBytes, err := json.Marshal(&loanAccount)
     	if err != nil {
@@ -66,11 +66,6 @@ func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
 
         	return nil, errors.New("Error creating account " + loanAccount.ID)
     	}
-	contractorAccountBytes, err := json.Marshal(&contractorAccount)
-   	 if err != nil {
-        	fmt.Println("error creating account" +contractorAccount.ID)
-        	return nil, errors.New("Error creating account " +contractorAccount.ID)
-    	}	
 
 	err = stub.PutState(loanAccount.ID, loanAccountBytes)
                 
@@ -82,15 +77,7 @@ func createAccounts(stub *shim.ChaincodeStub) ([]byte, error) {
                     return nil, errors.New("failed to initialize an account for " + loanAccount.ID + " => " + err.Error())
                 }	
 
-err = stub.PutState(contractorAccount.ID, contractorAccountBytes)
  
-                if err == nil {
-                    fmt.Println("created account" + contractorAccount.ID)
-                    return nil, nil
-                } else {
-                    fmt.Println("failed to create initialize account for " + contractorAccount.ID)
-                    return nil, errors.New("failed to initialize an account for " + contractorAccount.ID + " => " + err.Error())
-                }
 }
 
 
@@ -120,7 +107,7 @@ func GetAccount(stub *shim.ChaincodeStub , accountid string) (Account,error){
 		
 	err = json.Unmarshal(accountBytes, &account)
 	if err != nil {
-		fmt.Println("Error unmarshalling account " + accountBytes)
+		fmt.Println("Error unmarshalling account " + accountid)
 		return account, errors.New("Error unmarshalling account " + accountid)
 	}
 		
