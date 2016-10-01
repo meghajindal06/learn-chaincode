@@ -110,10 +110,10 @@ err = stub.PutState("contractoraccount", contractoraccountBytes)
 
 func (t *SimpleChaincode) createMilestomes(stub *shim.ChaincodeStub )  {
 
-	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
-{ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
-{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
-{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}}}
+	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
+{ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
+{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
+{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}}}
 
 
 	milestonesBytes, err := json.Marshal(&milestones)
@@ -147,7 +147,7 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	return nil, errors.New("Received unknown function invocation")
 }
 
-func GetAccount(stub *shim.ChaincodeStub , userId string) (Account,error){
+func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) ([]byte,error){
 	var account Account
 
 	if userId == "admin" || userId == "user_type1_61da9cc943" {
@@ -162,15 +162,41 @@ func GetAccount(stub *shim.ChaincodeStub , userId string) (Account,error){
 		return account, errors.New("Error retrieving account for " + userId)
 	}
 		
-	err = json.Unmarshal(accountBytes, &account)
-	if err != nil {
-		fmt.Println("Error unmarshalling account " + accountid)
-		return account, errors.New("Error unmarshalling account " + accountid)
-	}
+	
 		
-	return account, nil
+	return accountBytes, nil
 }
 
+func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string) ([]byte,error){
+	var milestones []Milestone
+
+	milestoneArrayBytes, err := stub.GetState("milestones")
+	if err != nil {
+		fmt.Println("Error retrieving milestones ")
+		return nil, errors.New("Error retrieving milestones ")
+	}
+	err = json.Unmarshal(milestoneArrayBytes, &milestones)
+	if err != nil {
+		fmt.Println("Error unmarshalling milestones ")
+		return nil, errors.New("Error unmarshalling milestones ")
+	}
+	
+	if userId == "admin" {
+		populateActionForCustomer(milestones)
+	}else if userId == "user_type1_0a40984e7b"{
+		populateActionForContractor(milestones)
+	}
+
+	
+	if err != nil {
+		fmt.Println("Error retrieving account " + accountid)
+		return account, errors.New("Error retrieving account for " + userId)
+	}
+		
+	
+		
+	return accountBytes, nil
+}
 
 // Query is our entry point for queries
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
@@ -178,18 +204,14 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 	if function == "GetAccountDetails" {
 		fmt.Println("Getting account details")
-		account, err := GetAccount(stub, args[0])
-		if err != nil {
-			fmt.Println("Error Getting particular account")
-			return nil, err
-		} else {
-			accountBytes, err1 := json.Marshal(&account)
-			if err1 != nil {
-				fmt.Println("Error marshalling account")
-				return nil, err1
-			}	
-			return accountBytes, nil		 
-		}
+		return t.GetAccount(stub, args[0])
+		
+	}
+
+	if function == "GetMilestones" {
+		fmt.Println("Getting milestones")
+		return t.GetMilestones(stub, args[0])
+		
 	}
 
 	// Handle different functions
