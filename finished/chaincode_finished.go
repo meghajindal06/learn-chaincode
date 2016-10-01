@@ -21,6 +21,7 @@ import (
 "errors"
 	"fmt"
 	"time"
+	  "strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -42,10 +43,16 @@ type Milestone struct {
 	Name string `json:"name"`
 	CurrentStatus string `json:"currentStatus"`
 	PaymentAmount float64 `json:"paymentAmount"`
-	PaymentDate *time.Time `json:"paymentAmount"`
 	PossibleActions []string `json:"possibleActions"`
 }
 
+
+type MilestoneHistory struct {
+	ID     string  `json:"id"`
+	Status string `json:"Status"`
+	PaymentDate time.Time `json:"paymentAmount"`
+	
+}
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
@@ -110,10 +117,10 @@ err = stub.PutState("contractoraccount", contractoraccountBytes)
 
 func (t *SimpleChaincode) createMilestomes(stub *shim.ChaincodeStub )  {
 
-	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
-{ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
-{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}},
-{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{}}}
+	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}}}
 
 
 	milestonesBytes, err := json.Marshal(&milestones)
@@ -139,8 +146,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
-	} else if function == "write" {
-		return t.write(stub, args)
+	} else if function == "updateStatus" {
+		return t.UpdateMilestoneStatus(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function)
 
@@ -155,6 +162,138 @@ func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) (
 	}
 
 	
+	
+}
+
+
+func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args []string) ([]byte,error){
+	
+	var userId = args[0]
+	var milestoneId = args[1]
+	var action = args[2]
+	var err error
+	//validate action allowed
+	var validate = t.ValidateAction(userId , action)
+	if(!validate) {
+		return nil, errors.New("Action " + action + " not permitted for user " + userId)
+	}
+
+
+	//update milestone array with status
+	t.UpdateMilestoneSummary(stub ,milestoneId , action)
+
+	//udate milestone history with status
+	err = t.UpdateMilestoneHistory(stub ,milestoneId ,action)
+	if(err != nil) {
+		return nil, errors.New("Error while updating history")
+	}
+
+	//if action accept create transaction 
+
+	return nil,nil
+	
+}
+
+func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
+
+	var milestoneHistoryArray []MilestoneHistory
+	milestoneHistoryArrayBytes,err := stub.GetState("milestonehistory_" + milestoneId)
+	var milestonehistory = MilestoneHistory{ID : milestoneId , Status : action , PaymentDate : time.Now()};
+	if(err != nil){
+		// there is no history present already
+		 if strings.Contains(err.Error(), "unexpected end") {
+		 	milestoneHistoryArray = []MilestoneHistory{milestonehistory}
+		}else {
+                return errors.New("Error unmarshalling existing history for id milestonehistory_" + milestoneId)
+           }
+	}else{
+		err := json.Unmarshal(milestoneHistoryArrayBytes , &milestoneHistoryArray)
+		if(err!= nil){
+			return errors.New("error unmarshalling milestone history")
+		}else{
+			var arrayLength = len(milestoneHistoryArray)
+			milestoneHistoryArray[arrayLength] = MilestoneHistory{ID: milestoneId , Status : action , PaymentDate : time.Now()}
+		}
+
+	}
+
+	milestoneHistoryArrayBytes,err = json.Marshal( &milestonehistory)
+		if(err != nil){
+			return errors.New("error mashalling milestone history")
+		}
+	err = stub.PutState("milestonehistory_" + milestoneId , milestoneHistoryArrayBytes)
+
+	 if err == nil {
+            fmt.Println("updated milestones history" )
+        } else {
+            fmt.Println("failed update milestones history ")
+            return errors.New("error updating milestone history")
+        }	
+        return nil
+}
+
+func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , milestoneId string , action string) ([]byte ,error){
+
+	var milestones []Milestone
+	var err error
+	var i int
+	milestoneSummaryBytes,err := stub.GetState("milestones")
+
+	 	if err != nil {
+           return nil, errors.New("error retrieving milestones for id" + milestoneId)
+        } 
+
+
+       err = json.Unmarshal(milestoneSummaryBytes , &milestones)
+       if err != nil {
+           return nil, errors.New("error unmarshalling milestones for id" + milestoneId)
+        } 
+
+        for i= 0; i<4 ;i++ {
+        	var milestone = milestones[i]
+        	if(milestone.ID == milestoneId){
+        		milestone.CurrentStatus = action
+
+
+        	}
+        }	
+
+       milestonesBytes, err := json.Marshal(&milestones)
+    	if err != nil {
+        	fmt.Println("error marshalling milestones")
+        	return nil,errors.New("error marshalling milestones" )
+
+    	}
+
+		err = stub.PutState("milestones", milestonesBytes)
+                
+        if err == nil {
+            fmt.Println("updated milestones" )
+        } else {
+            fmt.Println("failed to update milestones ")
+            return nil,errors.New("failed to update milestone id" + milestoneId)
+        }	
+
+        return nil,nil
+
+}
+
+func (t *SimpleChaincode) ValidateAction(userId string , action string) (bool){
+
+	if userId == "admin" {
+		return (action == "ACCEPT" || action == "REJECT" )
+
+	}else if userId == "user_type1_0a40984e7b" {
+		return (action == "START" || action == "DONE")
+	}else{
+		return false
+	}
+
+}
+
+func (t *SimpleChaincode) GetMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string) ([]byte,error){
+	
+	return stub.GetState("milestonehistory_" + milestoneId)
 	
 }
 
@@ -189,12 +328,51 @@ func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string
 
 
 func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([]Milestone) {
-	return milestones 
+		
+	var updatedMileStones = milestones
+	var i int
+	for i = 0; i < 4; i++ {
+		var possibleActions = []string{}
+		var milestone = updatedMileStones[i]
+		switch(milestone.CurrentStatus) {
+      		case "NOT_INITIATED" :
+      				possibleActions[0] = "START"
+      		case "START" :
+      				possibleActions[0] = "DONE"
+      		case "REJECT" :
+      				possibleActions[0] = "DONE"
+      		default :
+      				possibleActions = []string{}
+      	}
+      			milestone.PossibleActions = possibleActions
+
+    }
+	return updatedMileStones 
+	
+
 }
 
 func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]Milestone) {
-	return milestones 
+	
+	var updatedMileStones = milestones
+	var i int
+	for i = 0; i < 4; i++ {
+		var possibleActions = []string{}
+		var milestone = updatedMileStones[i]
+		switch(milestone.CurrentStatus) {
+      		case "DONE" :
+      				possibleActions[0] = "ACCEPT"
+      				possibleActions[1] = "REJECT"
+      		default :
+      				possibleActions = []string{}
+      	}
+      			milestone.PossibleActions = possibleActions
+
+    }
+	return updatedMileStones 
 }
+
+
 
 // Query is our entry point for queries
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
@@ -212,10 +390,12 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 		
 	}
 
-	// Handle different functions
-	if function == "read" { //read a variable
-		return t.read(stub, args)
+	if function == "GetMilestoneHistory" {
+		fmt.Println("Getting milestone history")
+		return t.GetMilestoneHistory(stub, args[0])
+		
 	}
+	
 	fmt.Println("query did not find func: " + function)
 
 	return nil, errors.New("Received unknown function query")
