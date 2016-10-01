@@ -148,7 +148,6 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 }
 
 func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) ([]byte,error){
-	var account Account
 	if userId == "admin" || userId == "user_type1_61da9cc943" {
 		return stub.GetState("loanaccount")
 	}else{
