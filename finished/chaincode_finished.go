@@ -28,8 +28,11 @@ import (
 type SimpleChaincode struct {
 }
 
+
+
 type Account struct {
 	ID          string  `json:"id"`
+	AccountNumber string `json:"iban"`
 	Balance float64 `json:"balance"`
 }
 
@@ -43,18 +46,23 @@ func main() {
 
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
-	}
-t.createAccounts(stub);
+	//create  accounts list
+	t.createAccounts(stub);
+
+	//cretae loan account
+
+	//create contractor account
+
+	//initialize milestones
+
 //	err := stub.PutState("hello_world", []byte(args[0]))
 
 	return nil, nil
 }
 
-func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub)  {
+func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
 
-	var loanAccount = Account{ID: "CustAcc_123456789", Balance: 10000000.0}
+	var loanAccount = Account{ID: "loanaccount",AccountNumber: "NL75ABNA0123456789",  Balance: 10000000.0} 
 
 
 	loanAccountBytes, err := json.Marshal(&loanAccount)
@@ -63,13 +71,21 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub)  {
 
     	}
 
-	err = stub.PutState(loanAccount.ID, loanAccountBytes)
+	err = stub.PutState("loanaccount", loanAccountBytes)
                 
                 if err == nil {
                     fmt.Println("created account" + loanAccount.ID)
                 } else {
                     fmt.Println("failed to create initialize account for " + loanAccount.ID)
                 }	
+err1 = stub.PutState("contractoraccount", loanAccountBytes)
+                
+                if err1 == nil {
+                    fmt.Println("created account" + "contractoraccount")
+                } else {
+                    fmt.Println("failed to create initialize account for " + "contractoraccount")
+                }	
+
 
  
 }
