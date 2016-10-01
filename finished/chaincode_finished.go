@@ -149,18 +149,14 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 
 func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) ([]byte,error){
 	var account Account
-
 	if userId == "admin" || userId == "user_type1_61da9cc943" {
-		accountBytes, err := stub.GetState("loanaccount")
+		return stub.GetState("loanaccount")
 	}else{
-		accountBytes, err := stub.GetState("contractoraccount")
+		return stub.GetState("contractoraccount")
 	}
 
 	
-		
 	
-		
-	return accountBytes, err
 }
 
 func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string) ([]byte,error){
@@ -178,20 +174,27 @@ func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string
 	}
 	
 	if userId == "admin" {
-		populateActionForCustomer(milestones)
+		milestones = t.populateActionForCustomer(milestones)
 	}else if userId == "user_type1_0a40984e7b"{
-		populateActionForContractor(milestones)
+		milestones =  t.populateActionForContractor(milestones)
 	}
 
-	
+	milestoneArrayBytes, err = json.Marshal(&milestones)
 	if err != nil {
-		fmt.Println("Error retrieving account " + accountid)
-		return account, errors.New("Error retrieving account for " + userId)
+		fmt.Println("Error retrieving milestones ")
+		return nil, errors.New("Error retrieving milestones ")
 	}
 		
-	
-		
-	return accountBytes, nil
+	return milestoneArrayBytes, nil
+}
+
+
+func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([]Milestone) {
+	return milestones 
+}
+
+func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]Milestone) {
+	return milestones 
 }
 
 // Query is our entry point for queries
