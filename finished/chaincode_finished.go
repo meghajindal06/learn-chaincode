@@ -110,7 +110,7 @@ err = stub.PutState("contractoraccount", contractoraccountBytes)
 
 func (t *SimpleChaincode) createMilestomes(stub *shim.ChaincodeStub )  {
 
-	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : "" , PossibleActions : []string{"STARTED"}},
+	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
 {ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
 {ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
 {ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}}}
