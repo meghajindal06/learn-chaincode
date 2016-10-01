@@ -59,7 +59,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	//create  accounts list
 	t.createAccounts(stub);
 
-	t.milestones(stub);
+	t.createMilestomes(stub);
 
 	//initialize milestones
 
