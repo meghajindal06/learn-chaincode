@@ -78,7 +78,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
 
 	var loanAccount = Account{ID: "loanaccount",AccountNumber: "NL75ABNA0123456789",  Balance: 10000000.0} 
-
+	fmt.Println(" creating account" )
 
 	loanAccountBytes, err := json.Marshal(&loanAccount)
     	if err != nil {
