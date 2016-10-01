@@ -211,8 +211,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
 		if(err!= nil){
 			return errors.New("error unmarshalling milestone history")
 		}else{
-			var arrayLength = len(milestoneHistoryArray)
-			milestoneHistoryArray[arrayLength] = MilestoneHistory{ID: milestoneId , Status : action , PaymentDate : time.Now()}
+			milestoneHistoryArray = Extend(milestoneHistoryArray , MilestoneHistory{ID: milestoneId , Status : action , PaymentDate : time.Now()})
 		}
 
 	}
@@ -332,15 +331,15 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
 	var updatedMileStones = milestones
 	var i int
 	for i = 0; i < 4; i++ {
-		var possibleActions = []string{}
+		var possibleActions []string
 		var milestone = updatedMileStones[i]
 		switch(milestone.CurrentStatus) {
       		case "NOT_INITIATED" :
-      				possibleActions[0] = "START"
+      				possibleActions = []string{"START"}
       		case "START" :
-      				possibleActions[0] = "DONE"
+      				possibleActions = []string{"DONE"}
       		case "REJECT" :
-      				possibleActions[0] = "DONE"
+      				possibleActions = []string{"DONE"}
       		default :
       				possibleActions = []string{}
       	}
@@ -352,6 +351,22 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
 
 }
 
+func Extend(slice []MilestoneHistory, element MilestoneHistory) []MilestoneHistory {
+    n := len(slice)
+    if n == cap(slice) {
+        // Slice is full; must grow.
+        // We double its size and add 1, so if the size is zero we still grow.
+        newSlice := make([]MilestoneHistory, len(slice), 2*len(slice)+1)
+        copy(newSlice, slice)
+        slice = newSlice
+    }
+    slice = slice[0 : n+1]
+    slice[n] = element
+    return slice
+}
+
+
+
 func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]Milestone) {
 	
 	var updatedMileStones = milestones
@@ -361,8 +376,7 @@ func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]
 		var milestone = updatedMileStones[i]
 		switch(milestone.CurrentStatus) {
       		case "DONE" :
-      				possibleActions[0] = "ACCEPT"
-      				possibleActions[1] = "REJECT"
+      				possibleActions = []string{"ACCEPT","REJECT"}
       		default :
       				possibleActions = []string{}
       	}
