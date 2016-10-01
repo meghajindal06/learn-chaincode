@@ -157,14 +157,10 @@ func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) (
 	}
 
 	
-	if err != nil {
-		fmt.Println("Error retrieving account " + accountid)
-		return account, errors.New("Error retrieving account for " + userId)
-	}
 		
 	
 		
-	return accountBytes, nil
+	return accountBytes, err
 }
 
 func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string) ([]byte,error){
