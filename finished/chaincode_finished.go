@@ -147,13 +147,19 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	return nil, errors.New("Received unknown function invocation")
 }
 
-func GetAccount(stub *shim.ChaincodeStub , accountid string) (Account,error){
+func GetAccount(stub *shim.ChaincodeStub , userId string) (Account,error){
 	var account Account
 
-	accountBytes, err := stub.GetState(accountid)
+	if userId == "admin" || userId == "user_type1_61da9cc943" {
+		accountBytes, err := stub.GetState("loanaccount")
+	}else{
+		accountBytes, err := stub.GetState("contractoraccount")
+	}
+
+	
 	if err != nil {
 		fmt.Println("Error retrieving account " + accountid)
-		return account, errors.New("Error retrieving account " + accountid)
+		return account, errors.New("Error retrieving account for " + userId)
 	}
 		
 	err = json.Unmarshal(accountBytes, &account)
@@ -170,9 +176,9 @@ func GetAccount(stub *shim.ChaincodeStub , accountid string) (Account,error){
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("query is running " + function)
 
-if args[0] == "GetAccountDetails" {
+	if function == "GetAccountDetails" {
 		fmt.Println("Getting account details")
-		account, err := GetAccount(stub, args[1])
+		account, err := GetAccount(stub, args[0])
 		if err != nil {
 			fmt.Println("Error Getting particular account")
 			return nil, err
