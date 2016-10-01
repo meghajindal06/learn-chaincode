@@ -332,8 +332,8 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
 	var i int
 	for i = 0; i < 4; i++ {
 		var possibleActions []string
-		var milestone = updatedMileStones[i]
-		switch(milestone.CurrentStatus) {
+		
+		switch(updatedMileStones[i].CurrentStatus) {
       		case "NOT_INITIATED" :
       				possibleActions = []string{"START"}
       		case "START" :
@@ -343,7 +343,7 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
       		default :
       				possibleActions = []string{}
       	}
-      			milestone.PossibleActions = possibleActions
+      			updatedMileStones[i].PossibleActions = possibleActions
 
     }
 	return updatedMileStones 
@@ -373,14 +373,13 @@ func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]
 	var i int
 	for i = 0; i < 4; i++ {
 		var possibleActions = []string{}
-		var milestone = updatedMileStones[i]
-		switch(milestone.CurrentStatus) {
+		switch(updatedMileStones[i].CurrentStatus) {
       		case "DONE" :
       				possibleActions = []string{"ACCEPT","REJECT"}
       		default :
       				possibleActions = []string{}
       	}
-      			milestone.PossibleActions = possibleActions
+      			updatedMileStones[i].PossibleActions = possibleActions
 
     }
 	return updatedMileStones 
