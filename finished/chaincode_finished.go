@@ -20,6 +20,7 @@ import (
 "encoding/json"	
 "errors"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -36,6 +37,15 @@ type Account struct {
 	Balance float64 `json:"balance"`
 }
 
+type Milestone struct {
+	ID          string  `json:"id"`
+	Name string `json:"name"`
+	CurrentStatus string `json:"currentStatus"`
+	PaymentAmount float64 `json:"paymentAmount"`
+	PaymentDate *time.Time `json:"paymentAmount"`
+	PossibleActions []string `json:"possibleActions"`
+}
+
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
@@ -49,9 +59,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	//create  accounts list
 	t.createAccounts(stub);
 
-	//cretae loan account
-
-	//create contractor account
+	t.milestones(stub);
 
 	//initialize milestones
 
@@ -78,7 +86,17 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
                 } else {
                     fmt.Println("failed to create initialize account for " + loanAccount.ID)
                 }	
-err = stub.PutState("contractoraccount", loanAccountBytes)
+
+
+               var contractoraccount = Account{ID: "contractoraccount",AccountNumber: "NLINGB053412537",  Balance: 0.0} 
+
+
+	contractoraccountBytes, err := json.Marshal(&contractoraccount)
+    	if err != nil {
+        	fmt.Println("error creating account" + "contractoraccount")
+
+    	}
+err = stub.PutState("contractoraccount", contractoraccountBytes)
                 
                 if err == nil {
                     fmt.Println("created account" + "contractoraccount")
@@ -88,6 +106,29 @@ err = stub.PutState("contractoraccount", loanAccountBytes)
 
 
  
+}
+
+func (t *SimpleChaincode) createMilestomes(stub *shim.ChaincodeStub )  {
+
+	var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : "" , PossibleActions : []string{"STARTED"}},
+{ID: "2" ,Name: "WALL" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
+{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}},
+{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 , PaymentDate : nil , PossibleActions : []string{"STARTED"}}}
+
+
+	milestonesBytes, err := json.Marshal(&milestones)
+    	if err != nil {
+        	fmt.Println("error creating milestones")
+
+    	}
+
+	err = stub.PutState("milestones", milestonesBytes)
+                
+        if err == nil {
+            fmt.Println("created milestones" )
+        } else {
+            fmt.Println("failed to create milestones ")
+        }	
 }
 
 
