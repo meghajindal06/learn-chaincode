@@ -78,9 +78,9 @@ func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
                 } else {
                     fmt.Println("failed to create initialize account for " + loanAccount.ID)
                 }	
-err1 = stub.PutState("contractoraccount", loanAccountBytes)
+err = stub.PutState("contractoraccount", loanAccountBytes)
                 
-                if err1 == nil {
+                if err == nil {
                     fmt.Println("created account" + "contractoraccount")
                 } else {
                     fmt.Println("failed to create initialize account for " + "contractoraccount")
