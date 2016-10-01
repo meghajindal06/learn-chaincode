@@ -335,7 +335,12 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
 		
 		switch(updatedMileStones[i].CurrentStatus) {
       		case "NOT_INITIATED" :
+      			if(i ==0 || updatedMileStones[i-1].CurrentStatus == "ACCEPT"){
       				possibleActions = []string{"START"}
+      				}else{
+      					possibleActions = []string{}
+      				}
+      				
       		case "START" :
       				possibleActions = []string{"DONE"}
       		case "REJECT" :
