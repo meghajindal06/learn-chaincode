@@ -132,9 +132,9 @@ func (t *SimpleChaincode) createMilestomes(stub *shim.ChaincodeStub )  {
 	err = stub.PutState("milestones", milestonesBytes)
                 
         if err == nil {
-            fmt.Println("created milestones" )
+            fmt.Println("created milestones successfully" )
         } else {
-            fmt.Println("failed to create milestones ")
+            fmt.Println("failed to create milestones in init")
         }	
 }
 
