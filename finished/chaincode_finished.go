@@ -260,7 +260,6 @@ func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestone
 
 
 	//Update transaction
-	
 	var transactions []Transaction
 	transactionArrayBytes,err := stub.GetState("transactions")
 	var transaction = Transaction{ID : "trx_" + milestoneId , MilestoneID : milestoneId , FromAccount : loanaccount.AccountNumber , ToAccount : contractoraccount.AccountNumber , Amount : amount, PaymentDate : time.Now()};
