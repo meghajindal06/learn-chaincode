@@ -237,6 +237,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	if function == "init" {
 		return t.Init(stub, "init", args)
 	}else if function == "init_lifecycle" {
+		fmt.Println("init lifecycle")
+
 		return t.Init(stub, "init_lifecycle", args)
 	} else if function == "updateStatus" {
 		return t.UpdateMilestoneStatus(stub, args)
