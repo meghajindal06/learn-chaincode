@@ -188,8 +188,10 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 
 
 	//update milestone array with status
-	t.UpdateMilestoneSummary(stub ,milestoneId , action)
-
+	err = t.UpdateMilestoneSummary(stub ,milestoneId , action)
+	if(err != nil) {
+		return nil, errors.New("Error while updating summary")
+	}
 	//udate milestone history with status
 	err = t.UpdateMilestoneHistory(stub ,milestoneId ,action)
 	if(err != nil) {
@@ -334,7 +336,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
         return nil
 }
 
-func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , milestoneId string , action string) ([]byte ,error){
+func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
 
 	var milestones []Milestone
 	var err error
@@ -343,14 +345,14 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
 
 	 	if err != nil {
 	 		fmt.Println("error retrieving milestones ")
-           return nil, errors.New("error retrieving milestones for id" + milestoneId)
+           return errors.New("error retrieving milestones for id" + milestoneId)
         } 
 
 
        err = json.Unmarshal(milestoneSummaryBytes , &milestones)
        if err != nil {
        	fmt.Println("error unmarshalling milestones for id")
-           return nil, errors.New("error unmarshalling milestones for id" + milestoneId)
+           return errors.New("error unmarshalling milestones for id" + milestoneId)
         } 
 
         for i= 0; i<4 ;i++ {
@@ -362,7 +364,7 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
        milestonesBytes, err := json.Marshal(&milestones)
     	if err != nil {
         	fmt.Println("error marshalling milestones")
-        	return nil,errors.New("error marshalling milestones" )
+        	return errors.New("error marshalling milestones" )
 
     	}
 
@@ -372,10 +374,10 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
             fmt.Println("updated milestones" )
         } else {
             fmt.Println("failed to update milestones ")
-            return nil,errors.New("failed to update milestone id" + milestoneId)
+            return errors.New("failed to update milestone id" + milestoneId)
         }	
 
-        return nil,nil
+        return nil
 
 }
 
@@ -402,7 +404,7 @@ func (t *SimpleChaincode) GetMilestoneHistory(stub *shim.ChaincodeStub , milesto
 
 func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string) ([]byte,error){
 	var milestones []Milestone
-
+	fmt.Println("Invoked Get Milestones method")
 	milestoneArrayBytes, err := stub.GetState("milestones")
 	if err != nil {
 		fmt.Println("Error retrieving milestones ")
