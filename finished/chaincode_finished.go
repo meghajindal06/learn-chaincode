@@ -386,13 +386,15 @@ func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestone
 
 
 func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
-
+	fmt.Println("Updating history")
 	var milestoneHistoryArray []MilestoneHistory
 	milestoneHistoryArrayBytes,err := stub.GetState("milestonehistory_" + milestoneId)
 	var milestonehistory = MilestoneHistory{ID : milestoneId , Status : action , ActionDate : time.Now()};
 	if(err != nil){
+		fmt.Println("error not nil")
 		// there is no history present already
 		 if strings.Contains(err.Error(), "unexpected end") {
+		 	fmt.Println("No history")
 		 	milestoneHistoryArray = []MilestoneHistory{milestonehistory}
 		}else {
                 return errors.New("Error unmarshalling existing history for id milestonehistory_" + milestoneId)
@@ -407,11 +409,11 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
 
 	}
 
-	milestoneHistoryArrayBytes,err = json.Marshal( &milestoneHistoryArray)
+	updatemilestoneHistoryArrayBytes,err := json.Marshal( &milestoneHistoryArray)
 		if(err != nil){
 			return errors.New("error mashalling milestone history")
 		}
-	err = stub.PutState("milestonehistory_" + milestoneId , milestoneHistoryArrayBytes)
+	err = stub.PutState("milestonehistory_" + milestoneId , updatemilestoneHistoryArrayBytes)
 
 	 if err == nil {
             fmt.Println("updated milestones history" )
