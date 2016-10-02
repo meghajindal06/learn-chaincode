@@ -386,7 +386,7 @@ func (t *SimpleChaincode) ValidateAction(userId string , action string) (bool){
 	if userId == "admin" {
 		return (action == "ACCEPT" || action == "REJECT" )
 
-	}else if userId == "user_type1_0a40984e7b" {
+	}else if userId == "user_type1_5894b6a76a" {
 		return (action == "START" || action == "DONE")
 	}else{
 		return false
@@ -416,7 +416,7 @@ func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string
 	
 	if userId == "admin" {
 		milestones = t.populateActionForCustomer(milestones)
-	}else if userId == "user_type1_0a40984e7b"{
+	}else if userId == "user_type1_5894b6a76a"{
 		milestones =  t.populateActionForContractor(milestones)
 	}
 
