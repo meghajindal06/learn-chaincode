@@ -85,7 +85,7 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 
 func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
 
-	var loanAccount = Account{ID: "loanaccount",AccountNumber: "NL75ABNA0123456789",  Balance: 10000000.0} 
+	var loanAccount = Account{ID: "loanaccount",AccountNumber: "NL75ABNA0123456789",  Balance: 120000} 
 	fmt.Println(" creating account" )
 
 	loanAccountBytes, err := json.Marshal(&loanAccount)
@@ -259,7 +259,7 @@ func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestone
 	}
 
 
-	//Update transaction
+	//Update transaction asdfasdfssssss
 	var transactions []Transaction
 	transactionArrayBytes,err := stub.GetState("transactions")
 	var transaction = Transaction{ID : "trx_" + milestoneId , MilestoneID : milestoneId , FromAccount : loanaccount.AccountNumber , ToAccount : contractoraccount.AccountNumber , Amount : amount, PaymentDate : time.Now()};
@@ -352,12 +352,9 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
         } 
 
         for i= 0; i<4 ;i++ {
-        	var milestone = milestones[i]
-        	if(milestone.ID == milestoneId){
-        		milestone.CurrentStatus = action
-
-
-        	}
+        	if(milestones[i].ID == milestoneId){
+        		milestones[i].CurrentStatus = action
+			}
         }	
 
        milestonesBytes, err := json.Marshal(&milestones)
