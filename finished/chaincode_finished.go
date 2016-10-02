@@ -296,6 +296,7 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 
 func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestoneId string , amount float64) (error){
 	
+
 	var loanaccount Account
 	var contractoraccount Account
 	var accountBytes []byte
@@ -363,7 +364,13 @@ func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestone
 		if(err!= nil){
 			return errors.New("error unmarshalling transaction history")
 		}else{
-			transactions = ExtendTransactionArray(transactions , transaction)
+			if len(transactions) == 0 {
+				transactions = []Transaction{transaction}
+				}else{
+					transactions = ExtendTransactionArray(transactions , transaction)	
+				}
+
+			
 		}
 
 	}
@@ -400,11 +407,23 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
                 return errors.New("Error unmarshalling existing history for id milestonehistory_" + milestoneId)
            }
 	}else{
+
 		err := json.Unmarshal(milestoneHistoryArrayBytes , &milestoneHistoryArray)
 		if(err!= nil){
 			return errors.New("error unmarshalling milestone history")
 		}else{
+		if len(milestoneHistoryArray) == 0 {
+			fmt.Println("length 0")
+			milestoneHistoryArray = []MilestoneHistory{milestonehistory}
+			
+		}else{
+
+			fmt.Println("Extending")
 			milestoneHistoryArray = Extend(milestoneHistoryArray , MilestoneHistory{ID: milestoneId , Status : action , ActionDate : time.Now()})
+			fmt.Println("Extended")
+		}
+
+			
 		}
 
 	}
@@ -551,6 +570,7 @@ func (t *SimpleChaincode) populateActionForContractor(milestones []Milestone) ([
 }
 
 func Extend(slice []MilestoneHistory, element MilestoneHistory) []MilestoneHistory {
+   	fmt.Println(len(slice))
     n := len(slice)
     if n == cap(slice) {
         // Slice is full; must grow.
