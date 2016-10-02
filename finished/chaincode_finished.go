@@ -279,10 +279,10 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 		return nil, errors.New("Error while updating summary")
 	}
 	//udate milestone history with status
-	err = t.UpdateMilestoneHistory(stub ,milestoneId ,action)
-	if(err != nil) {
-		return nil, errors.New("Error while updating history")
-	}
+//	err = t.UpdateMilestoneHistory(stub ,milestoneId ,action)
+//	if(err != nil) {
+//		return nil, errors.New("Error while updating history")
+//	}
 
 	//if action accept create transaction 
 
@@ -392,10 +392,11 @@ func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestone
 }
 
 
-func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
+/*func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
 	fmt.Println("Updating history")
 	var milestoneHistoryArray []MilestoneHistory
 	milestoneHistoryArrayBytes,err := stub.GetState("milestonehistory_" + milestoneId)
+
 	var milestonehistory = MilestoneHistory{ID : milestoneId , Status : action , ActionDate : time.Now()};
 	if(err != nil){
 		fmt.Println("error not nil")
@@ -441,7 +442,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
             return errors.New("error updating milestone history")
         }	
         return nil
-}
+} */
 
 func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
 
