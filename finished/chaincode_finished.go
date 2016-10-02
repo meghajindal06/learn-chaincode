@@ -268,9 +268,9 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 	var err error
 	//validate action allowed
 	var validate = t.ValidateAction(userId , action)
-	if(!validate) {
-		return nil, errors.New("Action " + action + " not permitted for user " + userId)
-	}
+	//if(!validate) {
+	//	return nil, errors.New("Action " + action + " not permitted for user " + userId)
+	//}
 
 
 	//update milestone array with status
