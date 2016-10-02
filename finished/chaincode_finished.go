@@ -175,7 +175,7 @@ func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) (
 
 
 func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args []string) ([]byte,error){
-	
+	fmt.Println("Attempting to Update milestone status")
 	var userId = args[0]
 	var milestoneId = args[1]
 	var action = args[2]
@@ -342,12 +342,14 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
 	milestoneSummaryBytes,err := stub.GetState("milestones")
 
 	 	if err != nil {
+	 		fmt.Println("error retrieving milestones ")
            return nil, errors.New("error retrieving milestones for id" + milestoneId)
         } 
 
 
        err = json.Unmarshal(milestoneSummaryBytes , &milestones)
        if err != nil {
+       	fmt.Println("error unmarshalling milestones for id")
            return nil, errors.New("error unmarshalling milestones for id" + milestoneId)
         } 
 
@@ -380,9 +382,11 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
 func (t *SimpleChaincode) ValidateAction(userId string , action string) (bool){
 
 	if userId == "admin" {
+		fmt.Println("admin:" + action == "ACCEPT" || action == "REJECT" )
 		return (action == "ACCEPT" || action == "REJECT" )
 
 	}else if userId == "user_type1_5894b6a76a" {
+		fmt.Println("user_type1_5894b6a76a:" + action == "START" || action == "DONE" )
 		return (action == "START" || action == "DONE")
 	}else{
 		return false
