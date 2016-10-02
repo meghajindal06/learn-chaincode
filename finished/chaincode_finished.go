@@ -360,7 +360,7 @@ func (t *SimpleChaincode) UpdateMilestoneSummary(stub *shim.ChaincodeStub , mile
         		milestones[i].CurrentStatus = action
 			}
         }	
-        fmt.Println("updated milestones" + milestones)
+        fmt.Println( milestones)
        milestonesBytes, err := json.Marshal(&milestones)
     	if err != nil {
         	fmt.Println("error marshalling milestones")
