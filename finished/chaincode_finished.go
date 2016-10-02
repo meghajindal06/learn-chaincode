@@ -1,12 +1,9 @@
 /*
 Copyright IBM Corp 2016 All Rights Reserved.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
 		 http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,6 +47,17 @@ type Milestone struct {
 type MilestoneHistory struct {
 	ID     string  `json:"id"`
 	Status string `json:"Status"`
+	PaymentDate time.Time `json:"paymentAmount"`
+	
+}
+
+
+type Transaction struct {
+	ID     string  `json:"id"`
+	MilestoneID     string  `json:"milestoneId"`
+	FromAccount string `json:"fromAccount"`
+	ToAccount string `json:"toAccount"`
+	Amount float64 `json:"amount"`
 	PaymentDate time.Time `json:"paymentAmount"`
 	
 }
@@ -190,9 +198,105 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 
 	//if action accept create transaction 
 
+	if action == "ACCEPT" {
+
+	}
+
 	return nil,nil
 	
 }
+
+func (t *SimpleChaincode) CreateTransaction(stub *shim.ChaincodeStub , milestoneId string , amount float64) (error){
+	
+	var loanaccount Account
+	var contractoraccount Account
+	var accountBytes []byte
+	var err error
+	//debit from loan
+	accountBytes,err = stub.GetState("loanaccount")
+	if(err != nil){
+		// there is no account present already
+		 return errors.New("No loan account found")
+    }else{
+		err := json.Unmarshal(accountBytes , &loanaccount)
+		if(err!= nil){
+			return errors.New("error unmarshalling loanaccount")
+		}else{
+			loanaccount.Balance = loanaccount.Balance - amount;
+			accountBytes,err := json.Marshal(&loanaccount)
+			err = stub.PutState("loanaccount" , accountBytes)
+			 if err == nil {
+            	fmt.Println("updated loanaccount history" )
+        	} else {
+           		fmt.Println("failed update loanaccount history ")
+            	return errors.New("error updating loanaccount history")
+        	}	
+		}
+
+	}
+
+	//credit in contractor
+	accountBytes,err = stub.GetState("contractoraccount")
+	if(err != nil){
+		// there is no account present already
+		 return errors.New("No contractor account found")
+    }else{
+		err := json.Unmarshal(accountBytes , &contractoraccount)
+		if(err!= nil){
+			return errors.New("error unmarshalling contractoraccount")
+		}else{
+			contractoraccount.Balance = contractoraccount.Balance + amount;
+			accountBytes,err := json.Marshal(&contractoraccount)
+			err = stub.PutState("contractoraccount" , accountBytes)
+			 if err == nil {
+            	fmt.Println("updated contractoraccount history" )
+        	} else {
+           		fmt.Println("failed update contractoraccount history ")
+            	return errors.New("error updating contractoraccount history")
+        	}	
+		}
+
+	}
+
+
+	//Update transaction
+	
+	var transactions []Transaction
+	transactionArrayBytes,err := stub.GetState("transactions")
+	var transaction = Transaction{ID : "trx_" + milestoneId , MilestoneID : milestoneId , FromAccount : loanaccount.AccountNumber , ToAccount : contractoraccount.AccountNumber , Amount : amount, PaymentDate : time.Now()};
+	if(err != nil){
+		// there is no history present already
+		 if strings.Contains(err.Error(), "unexpected end") {
+		 	transactions = []Transaction{transaction}
+		}else {
+                return errors.New("Error unmarshalling existing transaction history" )
+           }
+	}else{
+		err := json.Unmarshal(transactionArrayBytes , &transactions)
+		if(err!= nil){
+			return errors.New("error unmarshalling transaction history")
+		}else{
+			transactions = ExtendTransactionArray(transactions , transaction)
+		}
+
+	}
+
+	transactionArrayBytes,err = json.Marshal( &transactions)
+		if(err != nil){
+			return errors.New("error mashalling milestone history")
+		}
+	err = stub.PutState("transactions" , transactionArrayBytes)
+
+	 if err == nil {
+            fmt.Println("updated milestones history" )
+        } else {
+            fmt.Println("failed update transaction history ")
+            return errors.New("error updating transaction history")
+        }	
+        return nil
+
+}
+
 
 func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , milestoneId string , action string) (error){
 
@@ -216,7 +320,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
 
 	}
 
-	milestoneHistoryArrayBytes,err = json.Marshal( &milestonehistory)
+	milestoneHistoryArrayBytes,err = json.Marshal( &milestoneHistoryArray)
 		if(err != nil){
 			return errors.New("error mashalling milestone history")
 		}
@@ -370,6 +474,19 @@ func Extend(slice []MilestoneHistory, element MilestoneHistory) []MilestoneHisto
     return slice
 }
 
+func ExtendTransactionArray(slice []Transaction, element Transaction) []Transaction {
+    n := len(slice)
+    if n == cap(slice) {
+        // Slice is full; must grow.
+        // We double its size and add 1, so if the size is zero we still grow.
+        newSlice := make([]Transaction, len(slice), 2*len(slice)+1)
+        copy(newSlice, slice)
+        slice = newSlice
+    }
+    slice = slice[0 : n+1]
+    slice[n] = element
+    return slice
+}
 
 
 func (t *SimpleChaincode) populateActionForCustomer( milestones []Milestone) ([]Milestone) {
