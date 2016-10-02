@@ -127,7 +127,7 @@ func (t *SimpleChaincode) createMilestoneLifecycle(stub *shim.ChaincodeStub )  {
                 }	
 
                 //create milestones
-                var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "DONE" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+                var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "ACCEPT" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
 {ID: "2" ,Name: "WALL" , CurrentStatus : "START" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
 {ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
 {ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}}}
@@ -249,7 +249,7 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 }
 
 func (t *SimpleChaincode) GetAccount(stub *shim.ChaincodeStub , userId string) ([]byte,error){
-	if userId == "admin" || userId == "user_type1_61da9cc943" {
+	if userId == "admin" || strings.Contains(userId, "user_type2") {
 		return stub.GetState("loanaccount")
 	}else{
 		return stub.GetState("contractoraccount")
@@ -473,7 +473,7 @@ func (t *SimpleChaincode) ValidateAction(userId string , action string) (bool){
 		fmt.Println("admin:" + action == "ACCEPT" || action == "REJECT" )
 		return (action == "ACCEPT" || action == "REJECT" )
 
-	}else if userId == "user_type1_5894b6a76a" {
+	}else if strings.Contains(userId, "user_type1") {
 		fmt.Println("user_type1_5894b6a76a:" + action == "START" || action == "DONE" )
 		return (action == "START" || action == "DONE")
 	}else{
@@ -504,7 +504,7 @@ func (t *SimpleChaincode) GetMilestones(stub *shim.ChaincodeStub , userId string
 	
 	if userId == "admin" {
 		milestones = t.populateActionForCustomer(milestones)
-	}else if userId == "user_type1_5894b6a76a"{
+	}else if strings.Contains(userId, "user_type1"){
 		milestones =  t.populateActionForContractor(milestones)
 	}
 
