@@ -47,7 +47,7 @@ type Milestone struct {
 type MilestoneHistory struct {
 	ID     string  `json:"id"`
 	Status string `json:"Status"`
-	PaymentDate time.Time `json:"paymentAmount"`
+	ActionDate time.Time `json:"actionDate"`
 	
 }
 
@@ -72,15 +72,97 @@ func main() {
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	//create  accounts list
-	t.createAccounts(stub);
+	
+	if function == "init" {
+		t.createAccounts(stub);
 
-	t.createMilestomes(stub);
+		t.createMilestomes(stub);
+	}else{
+		t.createMilestoneLifecycle(stub)
+	}
+	
 
 	//initialize milestones
 
 //	err := stub.PutState("hello_world", []byte(args[0]))
 
 	return nil, nil
+}
+
+
+func (t *SimpleChaincode) createMilestoneLifecycle(stub *shim.ChaincodeStub )  {
+	//createAccounts
+	var loanAccount = Account{ID: "loanaccount",AccountNumber: "NL75ABNA0123456789",  Balance: 115000} 
+	fmt.Println(" creating account" )
+
+	loanAccountBytes, err := json.Marshal(&loanAccount)
+    	if err != nil {
+        	fmt.Println("error creating account" + loanAccount.ID)
+
+    	}
+
+	err = stub.PutState("loanaccount", loanAccountBytes)
+                
+                if err == nil {
+                    fmt.Println("created account" + loanAccount.ID)
+                } else {
+                    fmt.Println("failed to create initialize account for " + loanAccount.ID)
+                }	
+
+
+               var contractoraccount = Account{ID: "contractoraccount",AccountNumber: "NLINGB053412537",  Balance: 5000.0} 
+
+
+	contractoraccountBytes, err := json.Marshal(&contractoraccount)
+    	if err != nil {
+        	fmt.Println("error creating account" + "contractoraccount")
+
+    	}
+		err = stub.PutState("contractoraccount", contractoraccountBytes)
+                
+                if err == nil {
+                    fmt.Println("created account" + "contractoraccount")
+                } else {
+                    fmt.Println("failed to create initialize account for " + "contractoraccount")
+                }	
+
+                //create milestones
+                var milestones = []Milestone{{ID: "1" ,Name: "FLOOR" , CurrentStatus : "DONE" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "2" ,Name: "WALL" , CurrentStatus : "START" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "3" ,Name: "ROOF" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}},
+{ID: "4" ,Name: "DOOR" , CurrentStatus : "NOT_INITIATED" , PaymentAmount : 5000.0 ,  PossibleActions : []string{}}}
+
+
+	milestonesBytes, err := json.Marshal(&milestones)
+    	if err != nil {
+        	fmt.Println("error creating milestones")
+
+    	}
+
+	err = stub.PutState("milestones", milestonesBytes)
+                
+        if err == nil {
+            fmt.Println("created milestones successfully" )
+        } else {
+            fmt.Println("failed to create milestones in init")
+        }	
+
+        //create milestone history
+        var milestonehistoryArray = []MilestoneHistory{{ID : "1"  , Status : "START" , ActionDate : time.Now()},{ID : "milestonehistory_1"  , Status : "DONE" , ActionDate : time.Now()},{ID : "milestonehistory_1"  , Status : "REJECT" , ActionDate : time.Now()},{ID : "milestonehistory_1"  , Status : "DONE" , ActionDate : time.Now()},{ID : "milestonehistory_1"  , Status : "ACCEPT" , ActionDate : time.Now()}};
+        milestonehistoryArrayBytes, err := json.Marshal(&milestonehistoryArray)
+    	if err != nil {
+        	fmt.Println("error creating milestones")
+
+    	}
+
+	err = stub.PutState("milestonehistory_1", milestonehistoryArrayBytes)
+                
+        if err == nil {
+            fmt.Println("created milestones successfully" )
+        } else {
+            fmt.Println("failed to create milestones in init")
+        }	
+
 }
 
 func (t *SimpleChaincode) createAccounts(stub *shim.ChaincodeStub )  {
@@ -154,6 +236,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
+	}else if function == "init_lifecycle" {
+		return t.Init(stub, "init_lifecycle", args)
 	} else if function == "updateStatus" {
 		return t.UpdateMilestoneStatus(stub, args)
 	}
@@ -201,7 +285,7 @@ func (t *SimpleChaincode) UpdateMilestoneStatus(stub *shim.ChaincodeStub , args 
 	//if action accept create transaction 
 
 	if action == "ACCEPT" {
-
+		t.CreateTransaction(stub, milestoneId , 1000.0)
 	}
 
 	return nil,nil
@@ -303,7 +387,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
 
 	var milestoneHistoryArray []MilestoneHistory
 	milestoneHistoryArrayBytes,err := stub.GetState("milestonehistory_" + milestoneId)
-	var milestonehistory = MilestoneHistory{ID : milestoneId , Status : action , PaymentDate : time.Now()};
+	var milestonehistory = MilestoneHistory{ID : milestoneId , Status : action , ActionDate : time.Now()};
 	if(err != nil){
 		// there is no history present already
 		 if strings.Contains(err.Error(), "unexpected end") {
@@ -316,7 +400,7 @@ func (t *SimpleChaincode) UpdateMilestoneHistory(stub *shim.ChaincodeStub , mile
 		if(err!= nil){
 			return errors.New("error unmarshalling milestone history")
 		}else{
-			milestoneHistoryArray = Extend(milestoneHistoryArray , MilestoneHistory{ID: milestoneId , Status : action , PaymentDate : time.Now()})
+			milestoneHistoryArray = Extend(milestoneHistoryArray , MilestoneHistory{ID: milestoneId , Status : action , ActionDate : time.Now()})
 		}
 
 	}
